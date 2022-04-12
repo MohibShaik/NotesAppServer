@@ -2,6 +2,7 @@ const express = require('express');
 const { default: mongoose } = require('mongoose');
 const router = express.Router();
 const noteModel = require('../models/notes');
+
 // get all notes
 router.get('/', async (req, res) => {
   try {
