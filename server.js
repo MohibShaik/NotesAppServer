@@ -1,6 +1,10 @@
 
 const express = require('express');
 const app = express();
+
+var cors = require("cors");
+app.use(cors());
+
 const mongoose = require('mongoose');
 require ('custom-env').env('production')
 console.log(process.env.APP_ENV);
