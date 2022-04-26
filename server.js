@@ -1,28 +1,31 @@
 
 const express = require('express');
 const app = express();
-
 var cors = require("cors");
 app.use(cors());
-
-const mongoose = require('mongoose');
-require ('custom-env').env('production')
-console.log(process.env.APP_ENV);
-console.log(process.env.DATABASE_URL);
-mongoose.connect(process.env.DATABASE_URL);
-const db = mongoose.connection;
-
-db.on('error', (error) => console.log(error));
-db.once('open', () => console.log('connected to db server'));
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// DB config 
+const mongoose = require('mongoose');
+require ('custom-env').env('production')
+mongoose.connect(process.env.DATABASE_URL);
+console.log(process.env.DATABASE_URL)
+const db = mongoose.connection;
+db.on('error', (error) => console.log(error));
+db.once('open', () => console.log('connected to db server'));
+
+
+// routes 
 const notesRoutes = require('./routes/notes');
 const authRoutes = require('./routes/auth');
+const categoryRoutes = require('./routes/categories');
+
 
 app.use('/notes', notesRoutes);
 app.use('/users', authRoutes);
+app.use('/categories', categoryRoutes);
+
 
 // simple route
 app.get('/', (req, res) => {

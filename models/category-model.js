@@ -1,19 +1,11 @@
 const mongoose = require('mongoose');
 
-const notesSchema = new mongoose.Schema({
+const categorySchema = new mongoose.Schema({
   userId: {
     type: String,
     required: true,
   },
   title: {
-    type: String,
-    required: true,
-  },
-  label: {
-    type: Array,
-    required: false,
-  },
-  category: {
     type: String,
     required: true,
   },
@@ -28,4 +20,4 @@ const notesSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model('Notes', notesSchema);
+module.exports = mongoose.model('Categories', categorySchema);

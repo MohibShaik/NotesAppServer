@@ -1,43 +1,41 @@
 const express = require('express');
 const { default: mongoose } = require('mongoose');
 const router = express.Router();
-const noteModel = require('../models/notes');
+const categoryModel = require('../models/category-model');
 
-// get all notes by user id
-router.get('/:user_id/notes_list', async (req, res) => {
+// get all categories
+router.get('/', async (req, res) => {
   try {
-    const notes = await noteModel.find({ userId: req.params.user_id });
-    res.status(200).json(notes);
+    const categories = await categoryModel.find();
+    res.status(200).json(categories);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-// create a new note
+// create a new category
 router.post('/', async (req, res) => {
   console.log(req.body);
-  const note = new noteModel({
+  const category = new categoryModel({
     userId: req.body.userId,
     title: req.body.title,
-    label: req.body.label,
-    category: req.body.category,
     description: req.body.description,
   });
   try {
-    const newNotes = await note.save();
-    res.status(201).json(newNotes);
+    const newCategory = await category.save();
+    res.status(201).json(newCategory);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
 });
 
 // get one by id
-router.get('/:id', getNotes, async (req, res) => {
+router.get('/:id', getCategories, async (req, res) => {
   res.status(200).json(res.notes);
 });
 
 // update a note by id
-router.patch('/:id', getNotes, async (req, res) => {
+router.patch('/:id', getCategories, async (req, res) => {
   res.notes.title = req.body.title;
   res.notes.description = req.body.description;
 
@@ -50,7 +48,7 @@ router.patch('/:id', getNotes, async (req, res) => {
 });
 
 // delete a note by id
-router.delete('/:id', getNotes, async (req, res) => {
+router.delete('/:id', getCategories, async (req, res) => {
   try {
     await res.notes.remove();
     res.status(200).json({ message: 'notes deleted successfully' });
@@ -60,22 +58,21 @@ router.delete('/:id', getNotes, async (req, res) => {
 });
 
 // middleware function
-async function getNotes(req, res, next) {
-  let notes;
+async function getCategories(req, res, next) {
+  let categories;
   try {
     console.log(req.params.id);
-    notes = await noteModel.findById(req.params.id);
-    console.log(notes);
-    if (notes == null) {
+    categories = await categoryModel.findById(req.params.id);
+    console.log(categories);
+    if (categories == null) {
       return res
         .status(404)
-        .json({ message: 'cannot find notes with provided id' });
+        .json({ message: 'cannot find categories with provided id' });
     }
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }
-
-  res.notes = notes;
+  res.categories = categories;
   next();
 }
 module.exports = router;

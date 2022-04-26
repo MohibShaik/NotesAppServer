@@ -4,6 +4,7 @@ const auth = require('../helpers/jwt.js');
 
 async function login(emailAddress, password) {
   const user = await User.findOne({ emailAddress });
+  console.log(user)
   // synchronously compare user entered password with hashed password
   if (user) {
     if (bcrypt.compareSync(password, user.password)) {

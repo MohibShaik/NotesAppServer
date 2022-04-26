@@ -4,6 +4,7 @@ const UserModel = require('../models/user-model');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const userService = require('../services/user-service');
+const auth = require('../helpers/jwt.js');
 
 // register new user
 router.post('/signup', async (req, res) => {
@@ -23,9 +24,14 @@ router.post('/signup', async (req, res) => {
         password: hashedPassword,
       });
       const user = await newUser.save();
+      const token = auth.generateAccessToken(req.body.emailAddress);
       res
         .status(201)
-        .json({ message: 'user created successfully', userInfo: user });
+        .json({
+          message: 'user created successfully',
+          userInfo: user,
+          accessToken: token,
+        });
     }
   } catch (error) {
     console.log(error);
@@ -40,6 +46,7 @@ router.post('/login', async (req, res) => {
   userService
     .login(emailAddress, password)
     .then((response) => {
+      console.log(response)
       res.status(response?.status).json(response);
     })
     .catch((err) => console.log(err));
