@@ -29,7 +29,7 @@ router.post('/signup', async (req, res) => {
         .status(201)
         .json({
           message: 'user created successfully',
-          userInfo: user,
+          user: user,
           accessToken: token,
         });
     }
