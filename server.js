@@ -8,7 +8,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // DB config 
 const mongoose = require('mongoose');
-require ('custom-env').env('production')
+require ('custom-env').env('production');
 mongoose.connect(process.env.DATABASE_URL);
 console.log(process.env.DATABASE_URL)
 const db = mongoose.connection;
@@ -20,11 +20,13 @@ db.once('open', () => console.log('connected to db server'));
 const notesRoutes = require('./routes/notes');
 const authRoutes = require('./routes/auth');
 const categoryRoutes = require('./routes/categories');
-
+const labelRoutes = require('./routes/labels');
 
 app.use('/notes', notesRoutes);
 app.use('/users', authRoutes);
 app.use('/categories', categoryRoutes);
+app.use('/labels', labelRoutes);
+
 
 
 // simple route

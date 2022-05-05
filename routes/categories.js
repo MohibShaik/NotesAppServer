@@ -2,9 +2,10 @@ const express = require('express');
 const { default: mongoose } = require('mongoose');
 const router = express.Router();
 const categoryModel = require('../models/category-model');
+const jwt = require('../helpers/jwt');
 
 // get all categories
-router.get('/', async (req, res) => {
+router.get('/', jwt.authenticateToken, async (req, res) => {
   try {
     const categories = await categoryModel.find();
     res.status(200).json(categories);
@@ -14,11 +15,10 @@ router.get('/', async (req, res) => {
 });
 
 // create a new category
-router.post('/', async (req, res) => {
-  console.log(req.body);
+router.post('/', jwt.authenticateToken, async (req, res) => {
   const category = new categoryModel({
     userId: req.body.userId,
-    title: req.body.title,
+    name: req.body.name,
     description: req.body.description,
   });
   try {
@@ -30,13 +30,13 @@ router.post('/', async (req, res) => {
 });
 
 // get one by id
-router.get('/:id', getCategories, async (req, res) => {
+router.get('/:id', jwt.authenticateToken, getCategories, async (req, res) => {
   res.status(200).json(res.notes);
 });
 
 // update a note by id
-router.patch('/:id', getCategories, async (req, res) => {
-  res.notes.title = req.body.title;
+router.patch('/:id', jwt.authenticateToken, getCategories, async (req, res) => {
+  res.notes.name = req.body.name;
   res.notes.description = req.body.description;
 
   try {
@@ -48,22 +48,25 @@ router.patch('/:id', getCategories, async (req, res) => {
 });
 
 // delete a note by id
-router.delete('/:id', getCategories, async (req, res) => {
-  try {
-    await res.notes.remove();
-    res.status(200).json({ message: 'notes deleted successfully' });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+router.delete(
+  '/:id',
+  jwt.authenticateToken,
+  getCategories,
+  async (req, res) => {
+    try {
+      await res.notes.remove();
+      res.status(200).json({ message: 'notes deleted successfully' });
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
   }
-});
+);
 
 // middleware function
 async function getCategories(req, res, next) {
   let categories;
   try {
-    console.log(req.params.id);
     categories = await categoryModel.findById(req.params.id);
-    console.log(categories);
     if (categories == null) {
       return res
         .status(404)
