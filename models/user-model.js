@@ -29,6 +29,10 @@ const UserSchema = new Schema({
     type: Date,
     default: Date.now(),
   },
+  averageMonthlyIncome: {
+    type: Number,
+    required: true,
+  },
 });
 
 UserSchema.set('toJSON', {

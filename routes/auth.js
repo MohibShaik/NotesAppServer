@@ -23,16 +23,15 @@ router.post('/signup', async (req, res) => {
         gender: req.body.gender,
         role: req.body.role,
         dateofbirth: req.body.dateofbirth,
+        averageMonthlyIncome: req.body.averageMonthlyIncome,
       });
       const user = await newUser.save();
       const token = auth.generateAccessToken(req.body.emailAddress);
-      res
-        .status(201)
-        .json({
-          message: 'user created successfully',
-          user: user,
-          accessToken: token,
-        });
+      res.status(201).json({
+        message: 'user created successfully',
+        user: user,
+        accessToken: token,
+      });
     }
   } catch (error) {
     res.status(400).json({ message: error.message });
