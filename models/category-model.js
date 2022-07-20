@@ -13,12 +13,10 @@ const categorySchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-
   tab: {
     type: String,
     required: true,
   },
-  
   createdDate: {
     type: Date,
     required: false,
