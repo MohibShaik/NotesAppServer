@@ -1,33 +1,62 @@
 const mongoose = require('mongoose');
 
 const postsSchema = new mongoose.Schema({
-    creator: {
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Users',
+  },
+
+  title: {
+    type: String,
+    required: true,
+  },
+
+  content: {
+    type: String,
+    required: true,
+  },
+
+  imagePath: {
+    type: String,
+  },
+
+  createdDate: {
+    type: Date,
+    default: Date.now(),
+  },
+
+  likes: [
+    {
+      user: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Users',
+        ref: 'user',
+      },
     },
-    title: {
+  ],
+
+  comments: [
+    {
+      user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'user',
+      },
+      comment: {
         type: String,
-        required: true
+      },
+      commentedDate: {
+        type: Date,
+        default: Date.now(),
+      },
     },
-    content: {
-        type: String,
-        required: true
-    },
-    imagePath: {
-        type: String,
-        required: true
-    },
-    postDate: {
-        type: String,
-    },
+  ],
 });
 
 postsSchema.set('toJSON', {
-    transform: (document, returnedObject) => {
-        returnedObject.id = returnedObject._id.toString();
-        delete returnedObject._id;
-        delete returnedObject.__v;
-    },
+  transform: (document, returnedObject) => {
+    returnedObject.id = returnedObject._id.toString();
+    delete returnedObject._id;
+    delete returnedObject.__v;
+  },
 });
 
 module.exports = mongoose.model('Posts', postsSchema);

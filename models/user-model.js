@@ -31,7 +31,6 @@ const UserSchema = new Schema({
   },
   averageMonthlyIncome: {
     type: Number,
-    required: true,
   },
 });
 

@@ -3,187 +3,141 @@ const { default: mongoose } = require('mongoose');
 const router = express.Router();
 const Post = require('../models/posts');
 const jwt = require('../helpers/jwt');
-const multer = require("multer");
-
-
+const multer = require('multer');
+const Aws = require('aws-sdk');
+require('custom-env').env('development');
 
 const MIME_TYPE_MAP = {
-    "image/png": "png",
-    "image/jpeg": "jpg",
-    "image/jpg": "jpg",
-    "image/gif": "gif",
-    "application/pdf": "pdf"
+  'image/png': 'png',
+  'image/jpeg': 'jpg',
+  'image/jpg': 'jpg',
+  'image/gif': 'gif',
+  'application/pdf': 'pdf',
 };
 
-
-
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        console.log(file)
-        const isValid = MIME_TYPE_MAP[file.mimetype];
-        let error = new Error("Invalid mime type");
-        if (isValid) {
-            error = null;
-        }
-        cb(error, "../images");
-    },
-    filename: (req, file, cb) => {
-        const name = file.originalname
-            .toLowerCase()
-            .split(" ")
-            .join("-");
-
-        console.log(name)
-        const ext = MIME_TYPE_MAP[file.mimetype];
-        cb(null, name + "-" + Date.now() + "." + ext);
-    }
+const storage = multer.memoryStorage({
+  destination: function (req, file, cb) {
+    cb(null, './images');
+  },
 });
 
+// below variable is define to check the type of file which is uploaded
+const filefilter = (req, file, cb) => {
+  const isValid = MIME_TYPE_MAP[file.mimetype];
+  let error = new Error('Invalid mime type');
+  if (isValid) {
+    cb(null, true);
+  } else {
+    cb(null, false);
+  }
+};
 
+// defining the upload variable for the configuration of photo being uploaded
+const upload = multer({
+  storage: storage,
+  fileFilter: filefilter,
+});
 
+// Now creating the S3 instance which will be used in uploading photo to s3 bucket.
+const s3 = new Aws.S3({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID, // accessKeyId that is stored in .env file
+  secretAccessKey: process.env.AWS_ACCESS_KEY_SECRET, // secretAccessKey is also store in .env file
+});
 
+// now how to handle the post request and to upload photo (upload photo using the key defined below in upload.single ie: profile )
+router.post('/', upload.single('profile'), (req, res) => {
+  console.log(req.file, 'Hiiiiii');
 
+  // Definning the params variable to uplaod the photo
+  const params = {
+    Bucket: process.env.AWS_BUCKET_NAME, // bucket that we made earlier
+    Key: req.file.originalname, // Name of the image
+    Body: req.file.buffer, // Body which will contain the image in buffer format
+    ACL: 'public-read-write', // defining the permissions to get the public link
+    ContentType: 'image/jpeg', // Necessary to define the image content-type to view the photo in the browser with the link
+  };
 
-router.post("",
-    multer({ storage: storage }).single("image"),
-    (req, res, next) => {
-        console.log(req.image, 'im here')
-        const url = req.protocol + "://" + req.get("host")
-        console.log(url, 'url');
-        const x = url + "/images/" + req.file.filename;
-        console.log(x);
+  // uplaoding the photo using s3 instance and saving the link in the database.
+  s3.upload(params, (error, data) => {
+    if (error) {
+      console.log(error, 'upload failed to s3');
+      res.status(500).send({ err: error }); // if we get any error while uploading error message will be returned.
+    }
 
-        // const post = new Post({
-        //     title: req.body.title,
-        //     content: req.body.content,
-        //     imagePath: url + "/images/" + req.file.filename,
-        //     creator: req.userData.userId,
-        //     postDate: req.body.postDate,
-        // })
-        // console.log(post)
-        // post.save().
-        //     then(post => {
-        //         if (post) {
-        //             res.status(201).json({
-        //                 message: "Post added successfully",
-        //                 post: {
-        //                     ...post,
-        //                     id: post._id
-        //                 }
-        //             })
-        //         }
+    // If not then below code will be executed
+    console.log(data, 'img uploaded to s3', req.body); // this will give the information about the object in which photo is stored
 
-        //         if (!post) {
-        //             res.status(404).json({
-        //                 message: "Error Adding Post",
+    // saving the information in the database.
+    const newPost = new Post({
+      title: req.body.title,
+      content: req.body.content,
+      imagePath: data.Location,
+      userId: req.body.userId,
+      postDate: req.body.postDate,
+    });
+    newPost
+      .save()
+      .then((result) => {
+        res.status(200).send({
+          _id: result._id,
+          title: result.title,
+          content: result.content,
+          imagePath: data.Location,
+        });
+      })
+      .catch((err) => {
+        res.send({ message: err });
+      });
+  });
+});
 
-        //             })
-        //         }
+router.post('/like/:id', getPostsById, async (req, res) => {
+  try {
+    res.posts.likes.push(req.body);
+    const updatedPosts = await res.posts.save();
+    res.status(200).json(updatedPosts);
+  } catch (e) {
+    res.status(400).json({ message: e.message });
+  }
+});
 
+router.post(
+  '/comment/:id',
+  getPostsById,
+  async (req, res) => {
+    try {
+      res.posts.comments.push(req.body);
+      const updatedPosts = await res.posts.save();
+      res.status(200).json(updatedPosts);
+    } catch (e) {
+      res.status(400).json({ message: e.message });
+    }
+  }
+);
 
-        //     })
-        //     .catch(e => {
-        //         console.log(e)
-        //         res.status(501).json({ message: "Error Adding Post" + e });
-        //     })
-    })
+router.get('/', async (req, res) => {
+  try {
+    const posts = await Post.find().populate('Users');
+    res.status(200).json(posts);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 
+async function getPostsById(req, res, next) {
+  let posts;
+  try {
+    posts = await Post.findById(req.params.id);
+    if (posts == null) {
+      return res.status(404).json({
+        message: 'cannot find posts with provided id',
+      });
+    }
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+  res.posts = posts;
+  next();
+}
 
-
-// router.put(
-//     "/:id",
-//     checkAuth,
-//     multer({ storage: storage }).single("image"),
-//     (req, res, next) => {
-//         let imagePath = req.body.imagePath;
-//         if (req.file) {
-//             const url = req.protocol + "://" + req.get("host");
-//             imagePath = url + "/images/" + req.file.filename
-//         }
-
-//         console.log("90", req.body)
-//         const post = new Post({
-//             _id: req.body.id,
-//             title: req.body.title,
-//             content: req.body.content,
-//             imagePath: imagePath,
-//             creator: req.userData.userId
-//         });
-//         console.log("98---------------------", post);
-//         Post.updateOne(
-//             { _id: req.params.id, creator: req.userData.userId },
-//             post
-//         ).then(result => {
-//             if (result) {
-//                 res.status(200).json({ message: "Update successful!" });
-//             }
-
-//             else {
-//                 res.status(500).json({ message: "Error Upating Post" });
-//             }
-//         });
-//     }
-// );
-
-
-
-// router.get("/mypost",
-//     checkAuth,
-//     (req, res, next) => {
-//         Post.find({ creator: req.userData.userId }).then(post => {
-//             if (post) {
-//                 res.status(200).json({
-//                     message: "Posts fetched successfully!",
-//                     posts: post
-//                 });
-//             } else {
-//                 res.status(404).json({ message: "Post not found!" });
-//             }
-//         })
-//             .catch(e => {
-//                 console.log(e)
-//             });
-//     });
-
-
-// router.get("", (req, res, next) => {
-//     Post.find().then(documents => {
-//         if (documents) {
-//             res.status(200).json({
-//                 message: "Posts fetched successfully!",
-//                 posts: documents
-//             });
-//         }
-//         else {
-//             res.status(404).json({ message: "Post not found!" });
-//         }
-
-//     });
-// });
-// router.get("/:id", (req, res, next) => {
-//     Post.findById(req.params.id).then(post => {
-//         if (post) {
-//             res.status(200).json(post);
-//         } else {
-//             res.status(404).json({ message: "Post not found!" });
-//         }
-//     });
-// });
-
-// router.delete("/:id", checkAuth, (req, res, next) => {
-//     Post.deleteOne({ _id: req.params.id, creator: req.userData.userId }).then(
-//         result => {
-//             console.log(result);
-//             if (result.n > 0) {
-//                 res.status(200).json({ message: "Deletion successful!" });
-//             } else {
-//                 return res.status(401).json({ message: "Not authorized!!" });
-//             }
-//         }
-//     );
-// });
-
-
-module.exports = router
-
-
+module.exports = router;
