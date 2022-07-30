@@ -91,24 +91,26 @@ router.post('/', upload.single('profile'), (req, res) => {
   });
 });
 
-router.post('/like/:id', getPostsById, async (req, res) => {
+router.post('/:id/like', getPostsById, async (req, res) => {
   try {
     res.posts.likes.push(req.body);
     const updatedPosts = await res.posts.save();
-    res.status(200).json(updatedPosts);
+    data = await updatedPosts.populate('likes.userId');
+    res.status(200).json(data);
   } catch (e) {
     res.status(400).json({ message: e.message });
   }
 });
 
 router.post(
-  '/comment/:id',
+  '/:id/comment',
   getPostsById,
   async (req, res) => {
     try {
       res.posts.comments.push(req.body);
       const updatedPosts = await res.posts.save();
-      res.status(200).json(updatedPosts);
+      data = await updatedPosts.populate('comments.userId');
+      res.status(200).json(data);
     } catch (e) {
       res.status(400).json({ message: e.message });
     }
@@ -117,7 +119,7 @@ router.post(
 
 router.get('/', async (req, res) => {
   try {
-    const posts = await Post.find().populate('Users');
+    const posts = await Post.find().populate('userId').populate('comments.userId').populate('likes.userId');
     res.status(200).json(posts);
   } catch (err) {
     res.status(500).json({ message: err.message });
