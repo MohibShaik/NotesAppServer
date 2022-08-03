@@ -15,9 +15,22 @@ const UserSchema = new Schema({
     type: String,
     required: true,
   },
+  role: {
+    type: String,
+    default: 'user',
+  },
+  gender: {
+    type: String,
+  },
+  dateofbirth: {
+    type: String,
+  },
   date: {
     type: Date,
     default: Date.now(),
+  },
+  averageMonthlyIncome: {
+    type: Number,
   },
 });
 

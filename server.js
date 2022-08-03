@@ -25,11 +25,20 @@ db.once('open', () => console.log('connected to db server'));
 const notesRoutes = require('./routes/notes');
 const authRoutes = require('./routes/auth');
 const categoryRoutes = require('./routes/categories');
+const labelRoutes = require('./routes/labels');
+const expensesRoutes = require('./routes/expenses');
+const postsRoutes = require('./routes/posts');
+
 
 
 app.use('/notes', notesRoutes);
 app.use('/users', authRoutes);
 app.use('/categories', categoryRoutes);
+app.use('/labels', labelRoutes);
+app.use('/expenses', expensesRoutes);
+app.use('/posts', postsRoutes);
+
+
 
 
 // simple route

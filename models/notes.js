@@ -9,14 +9,18 @@ const notesSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  label: {
-    type: Array,
-    required: false,
-  },
-  category: {
-    type: String,
-    required: true,
-  },
+  label: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Labels',
+    },
+  ],
+  category: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Categories',
+    },
+  ],
   description: {
     type: String,
     required: true,

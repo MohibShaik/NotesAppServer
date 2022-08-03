@@ -1,19 +1,19 @@
 const mongoose = require('mongoose');
 
-const categorySchema = new mongoose.Schema({
+const expensesSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Users',
   },
+  categoryId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Categories',
+  },
+  amount: {
+    type: Number,
+    required: true,
+  },
   name: {
-    type: String,
-    required: true,
-  },
-  description: {
-    type: String,
-    required: true,
-  },
-  tab: {
     type: String,
     required: true,
   },
@@ -24,12 +24,11 @@ const categorySchema = new mongoose.Schema({
   },
 });
 
-categorySchema.set('toJSON', {
+expensesSchema.set('toJSON', {
   transform: (document, returnedObject) => {
     returnedObject.id = returnedObject._id.toString();
-    delete returnedObject._id;
     delete returnedObject.__v;
   },
 });
 
-module.exports = mongoose.model('Categories', categorySchema);
+module.exports = mongoose.model('Expenses', expensesSchema);
