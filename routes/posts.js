@@ -3,95 +3,68 @@ const { default: mongoose } = require('mongoose');
 const router = express.Router();
 const Post = require('../models/posts');
 const jwt = require('../helpers/jwt');
+const dotenv = require('dotenv');
+dotenv.config();
+const app = express();
+
+
+
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const multer = require('multer');
-const Aws = require('aws-sdk');
-require('custom-env').env('development');
+const fileupload = require('express-fileupload');
+app.use(fileupload({ useTempFiles: true }))
 
-const MIME_TYPE_MAP = {
-  'image/png': 'png',
-  'image/jpeg': 'jpg',
-  'image/jpg': 'jpg',
-  'image/gif': 'gif',
-  'application/pdf': 'pdf',
-};
 
-const storage = multer.memoryStorage({
-  destination: function (req, file, cb) {
-    cb(null, './images');
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.API_KEY,
+  api_secret: process.env.API_SECRET,
+  secure: true
+});
+
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'Feeds',
   },
 });
 
-// below variable is define to check the type of file which is uploaded
-const filefilter = (req, file, cb) => {
-  const isValid = MIME_TYPE_MAP[file.mimetype];
-  let error = new Error('Invalid mime type');
-  if (isValid) {
-    cb(null, true);
-  } else {
-    cb(null, false);
-  }
-};
+const parser = multer({ storage: storage });
 
-// defining the upload variable for the configuration of photo being uploaded
-const upload = multer({
-  storage: storage,
-  fileFilter: filefilter,
-});
+router.post('/upload', jwt.authenticateToken, async (req, res) => {
+  try {
+    const fileStr = req.body.image;
+    const uploadResponse = await cloudinary.uploader.upload(fileStr,
+      { folder: 'Feeds' });
+    if (uploadResponse.url) {
 
-// Now creating the S3 instance which will be used in uploading photo to s3 bucket.
-const s3 = new Aws.S3({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID, // accessKeyId that is stored in .env file
-  secretAccessKey: process.env.AWS_ACCESS_KEY_SECRET, // secretAccessKey is also store in .env file
-});
-
-// now how to handle the post request and to upload photo (upload photo using the key defined below in upload.single ie: profile )
-router.post('/', upload.single('profile'), (req, res) => {
-  console.log(req.file, 'Hiiiiii');
-
-  // Definning the params variable to uplaod the photo
-  const params = {
-    Bucket: process.env.AWS_BUCKET_NAME, // bucket that we made earlier
-    Key: req.file.originalname, // Name of the image
-    Body: req.file.buffer, // Body which will contain the image in buffer format
-    ACL: 'public-read-write', // defining the permissions to get the public link
-    ContentType: 'image/jpeg', // Necessary to define the image content-type to view the photo in the browser with the link
-  };
-
-  // uplaoding the photo using s3 instance and saving the link in the database.
-  s3.upload(params, (error, data) => {
-    if (error) {
-      console.log(error, 'upload failed to s3');
-      res.status(500).send({ err: error }); // if we get any error while uploading error message will be returned.
-    }
-
-    // If not then below code will be executed
-    console.log(data, 'img uploaded to s3', req.body); // this will give the information about the object in which photo is stored
-
-    // saving the information in the database.
-    const newPost = new Post({
-      title: req.body.title,
-      content: req.body.content,
-      imagePath: data.Location,
-      userId: req.body.userId,
-      postDate: req.body.postDate,
-    });
-    newPost
-      .save()
-      .then((result) => {
-        res.status(200).send({
-          _id: result._id,
-          title: result.title,
-          content: result.content,
-          imagePath: data.Location,
-        });
-      })
-      .catch((err) => {
-        res.send({ message: err });
+      const newPost = new Post({
+        content: req.body.content,
+        imagePath: uploadResponse.secure_url,
+        userId: req.body.userId,
+        postDate: req.body.postDate,
       });
-  });
+
+      await newPost
+        .save()
+        .then((result) => {
+          res.status(200).json({ message: "Post created successfully", data: result });
+        })
+        .catch((err) => {
+          res.status(500).send({ message: err });
+        });
+
+    }
+    // res.json({ msg: 'yaya' });
+  } catch (err) {
+    res.status(500).json({ message: err });
+  }
+
 });
 
-router.post('/:id/like', getPostsById, async (req, res) => {
+
+router.post('/:id/like', jwt.authenticateToken, getPostsById, async (req, res) => {
   try {
     res.posts.likes.push(req.body);
     const updatedPosts = await res.posts.save();
@@ -102,22 +75,36 @@ router.post('/:id/like', getPostsById, async (req, res) => {
   }
 });
 
+
+router.post('/:id/unlike', jwt.authenticateToken, getPostsById, async (req, res) => {
+  try {
+    res.posts.likes.splice(res.posts.likes.findIndex(like => like.userId === req.body.userId), 1);
+    const updatedPosts = await res.posts.save();
+    const data = await updatedPosts.populate('likes.userId');
+    res.status(200).json(data);
+  } catch (e) {
+    res.status(400).json({ message: e.message });
+  }
+});
+
+
 router.post(
   '/:id/comment',
+  jwt.authenticateToken,
   getPostsById,
   async (req, res) => {
     try {
       res.posts.comments.push(req.body);
       const updatedPosts = await res.posts.save();
-      data = await updatedPosts.populate('comments.userId');
-      res.status(200).json(data);
+      result = await updatedPosts.populate('comments.userId');
+      res.status(200).json({ message: "Comment added successfully", data: result });
     } catch (e) {
       res.status(400).json({ message: e.message });
     }
   }
 );
 
-router.get('/', async (req, res) => {
+router.get('/', jwt.authenticateToken, async (req, res) => {
   try {
     const posts = await Post.find().populate('userId').populate('comments.userId').populate('likes.userId');
     res.status(200).json(posts);
@@ -125,6 +112,17 @@ router.get('/', async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
+
+
+router.get('/user/:userId', jwt.authenticateToken, async (req, res) => {
+  try {
+    const posts = await Post.find({ userId: req.params.userId }).populate('userId').populate('comments.userId').populate('likes.userId');
+    res.status(200).json(posts);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 
 async function getPostsById(req, res, next) {
   let posts;

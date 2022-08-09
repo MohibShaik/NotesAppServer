@@ -6,20 +6,24 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+const fileupload = require('express-fileupload'); 
+app.use(fileupload({useTempFiles: true}))
+
 
 const dotenv = require('dotenv');
 dotenv.config();
 console.log(process.env.DATABASE_URL)
 
 
+
+
+
 // DB config 
 const mongoose = require('mongoose');
-// require ('custom-env').env('production')
 mongoose.connect(process.env.DATABASE_URL);
 const db = mongoose.connection;
 db.on('error', (error) => console.log(error));
 db.once('open', () => console.log('connected to db server'));
-
 
 // routes 
 const notesRoutes = require('./routes/notes');
