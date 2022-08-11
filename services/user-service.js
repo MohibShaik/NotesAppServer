@@ -14,7 +14,7 @@ async function login(emailAddress, password) {
       return { status: 403, message: 'Invalid credentials' };
     }
   } else {
-    return { status: 404, message: 'user not found' };
+    return { status: 404, message: "Seems like you don't have an account , try creating a new one" };
   }
 }
 
