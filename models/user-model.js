@@ -27,12 +27,31 @@ const UserSchema = new Schema({
   dateofbirth: {
     type: String,
   },
-  date: {
+  createdDate: {
     type: Date,
     default: Date.now(),
   },
   averageMonthlyIncome: {
     type: Number,
+  },
+
+  lastActive: {
+    type: String,
+    required: false,
+  },
+
+  active: {
+    type: Boolean,
+    default: false,
+  },
+
+  otp: {
+    type: String,
+    required: true,
+  },
+
+  imagePath: {
+    type: String,
   },
 });
 

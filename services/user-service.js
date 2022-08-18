@@ -24,6 +24,14 @@ async function register(params) {
   await user.save();
 }
 
+
+async function updatePassword(userId , updatePassword) {
+  let updatedHashedPassword = await bcrypt.hash(updatePassword, 10);
+  User.findOneAndUpdate({_id: userId}, {password: updatedHashedPassword}, function(err, user) {
+    console.log(user)
+  });
+}
+
 async function getById(id) {
   const user = await User.findById(id);
   // call toJSON method applied during model instantiation
