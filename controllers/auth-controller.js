@@ -2,34 +2,7 @@ const { generateOTP } = require('../services/otp-service');
 const { sendMail } = require('../services/email-service');
 const UserModel = require('../models/user-model');
 const bcrypt = require('bcrypt');
-const dotenv = require('dotenv');
-dotenv.config();
-
-
-
 const cloudinary = require('cloudinary').v2;
- 
-const {
-  CloudinaryStorage,
-} = require('multer-storage-cloudinary');
-
-const multer = require('multer');
-
-cloudinary.config({
-  cloud_name: process.env.CLOUD_NAME,
-  api_key: process.env.API_KEY,
-  api_secret: process.env.API_SECRET,
-  secure: true,
-});
-
-const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
-    folder: 'profile-pictures',
-  },
-});
-
-const parser = multer({ storage: storage });
 
 
 module.exports.signUpUser = async (req, res) => {
@@ -72,7 +45,7 @@ module.exports.updatePassword = async (req, res) => {
   const userData = await UserModel.findOne({
     emailAddress,
   });
-  console.log(userData);
+
   if (userData) {
     let updatedHashedPassword = await bcrypt.hash(
       password,
@@ -85,7 +58,7 @@ module.exports.updatePassword = async (req, res) => {
         $set: { password: updatedHashedPassword },
       }
     );
-    console.log(updatedUser, 'updatedUser');
+
     if (updatedUser) {
       return res
         .status(200)
@@ -166,7 +139,8 @@ const validateUserSignUp = async (emailAddress, otp) => {
     user._id,
     {
       $set: { active: true },
-    }
+    },
+    { new: true }
   );
   return {
     message:
@@ -178,9 +152,6 @@ const validateUserSignUp = async (emailAddress, otp) => {
 // update user info call
 module.exports.updateUserInfo = async (req, res) => {
   const userId = req.body.id;
-  console.log(userId);
-  // const userData = await UserModel.findById(userId);
-
   const updatedUser = await UserModel.findByIdAndUpdate(
     req.body.id,
     {
@@ -206,21 +177,15 @@ module.exports.updateUserInfo = async (req, res) => {
 // update user info call
 module.exports.updateUserAvator = async (req, res) => {
   try {
-    const fileStr = req.body.image;
-    console.log(JSON.stringify(req.body));
-    const uploadResponse = await cloudinary.uploader.upload(
-      fileStr,
-      { folder: 'profile-pictures' }
-    );
-
-    if (uploadResponse.url) {
+    if (req.files.length) {
       const updatedUser = await UserModel.findByIdAndUpdate(
         req.body.id,
         {
           $set: {
-            imagePath: uploadResponse.secure_url,
+            imagePath: req.files[0].path,
           },
-        }
+        },
+        { new: true }
       );
       if (updatedUser) {
         res.status(200).json({
@@ -235,6 +200,28 @@ module.exports.updateUserAvator = async (req, res) => {
       }
     }
   } catch (e) {
-    console.log(e);
+    return res.status(400).json({
+      message:
+        'Something went wrong , Please try again later',
+    });
+  }
+};
+
+// login call
+module.exports.login = async (req, res) => {
+  const emailAddress = req.body.emailAddress;
+  const password = req.body.password;
+  const user = await UserModel.findOne({ emailAddress });
+  // synchronously compare user entered password with hashed password
+  if (user) {
+    if (bcrypt.compareSync(password, user.password)) {
+      const token = auth.generateAccessToken(emailAddress);
+      // call toJSON method applied during model instantiation
+      return { status: 200, user: user.toJSON(), accessToken: token };
+    } else {
+      return { status: 403, message: 'Invalid credentials' };
+    }
+  } else {
+    return { status: 404, message: "Seems like you don't have an account , try creating a new one" };
   }
 };
