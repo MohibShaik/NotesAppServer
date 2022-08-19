@@ -3,7 +3,7 @@ const { sendMail } = require('../services/email-service');
 const UserModel = require('../models/user-model');
 const bcrypt = require('bcrypt');
 const cloudinary = require('cloudinary').v2;
-
+const auth = require('../helpers/jwt.js');
 
 module.exports.signUpUser = async (req, res) => {
   const { username, emailAddress, password } = req.body;
@@ -177,12 +177,17 @@ module.exports.updateUserInfo = async (req, res) => {
 // update user info call
 module.exports.updateUserAvator = async (req, res) => {
   try {
-    if (req.files.length) {
+    const fileStr = req.body.image;
+    const uploadResponse = await cloudinary.uploader.upload(
+      fileStr,
+      { folder: 'profile-pictures' }
+    );
+    if (uploadResponse.url) {
       const updatedUser = await UserModel.findByIdAndUpdate(
         req.body.id,
         {
           $set: {
-            imagePath: req.files[0].path,
+            imagePath: uploadResponse.secure_url,
           },
         },
         { new: true }
@@ -217,11 +222,37 @@ module.exports.login = async (req, res) => {
     if (bcrypt.compareSync(password, user.password)) {
       const token = auth.generateAccessToken(emailAddress);
       // call toJSON method applied during model instantiation
-      return { status: 200, user: user.toJSON(), accessToken: token };
+      return res.status(200).json({
+        status: 200,
+        user: user.toJSON(),
+        accessToken: token,
+      });
     } else {
-      return { status: 403, message: 'Invalid credentials' };
+      return res.status(400).json({
+        status: 403,
+        message: 'Invalid credentials',
+      });
     }
   } else {
-    return { status: 404, message: "Seems like you don't have an account , try creating a new one" };
+    return res.status(404).json({
+      status: 404,
+      message:
+        "Seems like you don't have an account , try creating a new one",
+    });
+  }
+};
+
+module.exports.userInfo = async (req, res) => {
+  const userId = req.params.userId;
+  const user = await UserModel.findById(userId);
+  // synchronously compare user entered password with hashed password
+  if (user) {
+    return res
+      .status(200)
+      .json({ message: 'User Details', data: user });
+  } else {
+    return res.status(404).json({
+      message: 'User not found',
+    });
   }
 };

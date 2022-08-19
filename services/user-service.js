@@ -28,7 +28,6 @@ async function register(params) {
 async function updatePassword(userId , updatePassword) {
   let updatedHashedPassword = await bcrypt.hash(updatePassword, 10);
   User.findOneAndUpdate({_id: userId}, {password: updatedHashedPassword}, function(err, user) {
-    console.log(user)
   });
 }
 

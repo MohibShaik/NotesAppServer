@@ -35,6 +35,8 @@ router.post('/update-password', authController.updatePassword);
 router.put('/update-user-info', authController.updateUserInfo);
 router.post('/update-user-avator', parser.any(), authController.updateUserAvator);
 router.post('/login', authController.login);
+router.get('/profile/:userId', authController.userInfo);
+
 
 
 // login api

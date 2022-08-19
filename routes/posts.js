@@ -33,7 +33,7 @@ const storage = new CloudinaryStorage({
 
 const parser = multer({ storage: storage });
 
-router.post('/upload', jwt.authenticateToken, async (req, res) => {
+router.post('/upload', jwt.authenticateToken, parser.any(), async (req, res) => {
   try {
     const fileStr = req.body.image;
     const uploadResponse = await cloudinary.uploader.upload(fileStr,

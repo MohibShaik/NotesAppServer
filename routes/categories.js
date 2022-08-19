@@ -6,7 +6,6 @@ const jwt = require('../helpers/jwt');
 
 // get all categories by tab name
 router.get('/:tab', jwt.authenticateToken, async (req, res) => {
-  console.log('hellooooo', req.params.tab);
   try {
     const categories = await categoryModel.find({ tab: req.params.tab });
     res.status(200).json(categories);

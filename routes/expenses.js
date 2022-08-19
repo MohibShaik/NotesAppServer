@@ -22,7 +22,6 @@ router.post('/', async (req, res) => {
     amount: req.body.amount,
     name: req.body.name,
   });
-  console.log(req.body);
   try {
     const newExpense = await expense.save();
     res.status(201).json(newExpense);
