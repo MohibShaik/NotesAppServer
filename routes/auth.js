@@ -3,6 +3,7 @@ const router = express.Router();
 const userService = require('../services/user-service');
 const authController = require('../controllers/auth-controller');
 const dotenv = require('dotenv');
+const jwt = require('../helpers/jwt');
 dotenv.config();
 
 const cloudinary = require('cloudinary').v2;
@@ -36,19 +37,7 @@ router.put('/update-user-info', authController.updateUserInfo);
 router.post('/update-user-avator', parser.any(), authController.updateUserAvator);
 router.post('/login', authController.login);
 router.get('/profile/:userId', authController.userInfo);
+router.get('/list',jwt.authenticateToken , authController.usersList);
 
-
-
-// login api
-// router.post('/login', async (req, res) => {
-//   const emailAddress = req.body.emailAddress;
-//   const password = req.body.password;
-//   userService
-//     .login(emailAddress, password)
-//     .then((response) => {
-//       res.status(response?.status).json(response);
-//     })
-//     .catch((err) => console.log(err));
-// });
 
 module.exports = router;

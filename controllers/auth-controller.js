@@ -256,3 +256,20 @@ module.exports.userInfo = async (req, res) => {
     });
   }
 };
+
+module.exports.usersList = async (req, res) => {
+  try {
+    const usersList = await UserModel.find();
+    if (usersList) {
+      res.status(200).json({
+        message: 'Users List',
+        data: usersList,
+      });
+    }
+  } catch (error) {
+    console.log()
+    res.status(500).json({
+      message: 'Something went wrong , please again later',
+    });
+  }
+};
