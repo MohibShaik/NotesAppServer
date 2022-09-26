@@ -43,6 +43,7 @@ uploadNewFeed = async (req, res) => {
       await newPost
         .save()
         .then((result) => {
+          updateFeedToPusher('Feeds-development' , 'Feeds' , result)
           res.status(200).json({
             message: 'Post created successfully',
             data: result,
@@ -58,9 +59,19 @@ uploadNewFeed = async (req, res) => {
   }
 };
 
+function updateFeedToPusher(channel, event, data) {
+  try {
+    pusher.trigger(channel, event, {
+      data,
+    });
+  } catch (error) {
+    return error;
+  }
+}
+
 likeAFeed = async (req, res) => {
   try {
-    const feedData = await this.getPostsById(req.params.id);
+    const feedData = await getPostsById(req.params.id);
     if (feedData) {
       feedData.likes.push(req.body);
       const updatedPosts = await feedData.save();
@@ -71,13 +82,13 @@ likeAFeed = async (req, res) => {
       });
     }
   } catch (error) {
-    res.status(500).json({ message: e.message });
+    res.status(500).json({ message: error.message });
   }
 };
 
 unLikeAFeed = async (req, res) => {
   try {
-    const feedData = await this.getPostsById(req.params.id);
+    const feedData = await getPostsById(req.params.id);
     if (feedData) {
       feedData.likes.splice(
         feedData.likes.findIndex(
@@ -101,7 +112,7 @@ unLikeAFeed = async (req, res) => {
 
 addAComment = async (req, res) => {
   try {
-    const feedData = await this.getPostsById(req.params.id);
+    const feedData = await getPostsById(req.params.id);
     if (feedData) {
       feedData.comments.push(req.body);
       const updatedPosts = await feedData.save();
@@ -133,7 +144,7 @@ getAllFeeds = async (req, res) => {
 };
 
 getAllFeedsByUserId = async (req, res) => {
-  console.log('hiii')
+  console.log('hiii');
   try {
     const posts = await Post.find({
       userId: req.params.userId,
