@@ -3,9 +3,7 @@ const auth = require('../helpers/jwt.js');
 
 async function createLabel(data) {
   const newLabelName = data.name;
-  console.log(newLabelName);
   const isLabelExists = await Label.findOne({ name: newLabelName });
-  console.log(isLabelExists);
   if (isLabelExists) {
     return { status: 400, message: 'label already exists' };
   } else {

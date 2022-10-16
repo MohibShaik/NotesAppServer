@@ -31,28 +31,22 @@ const UserSchema = new Schema({
     type: Date,
     default: Date.now(),
   },
-  averageMonthlyIncome: {
-    type: Number,
-  },
-
   lastActive: {
     type: String,
     required: false,
   },
-
   active: {
     type: Boolean,
     default: false,
   },
-
   otp: {
     type: String,
     required: true,
   },
-
   imagePath: {
     type: String,
   },
+
 });
 
 UserSchema.set('toJSON', {

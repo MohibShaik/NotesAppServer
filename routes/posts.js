@@ -17,5 +17,9 @@ router.post('/:id/unlike', jwt.authenticateToken, feedController.unLikeAFeed);
 router.post('/:id/comment', jwt.authenticateToken, feedController.addAComment);
 router.get('/', jwt.authenticateToken, feedController.getAllFeeds);
 router.get('/user/:userId', jwt.authenticateToken, feedController.getAllFeedsByUserId);
+router.post('/:userId/favourites', feedController.addFavourites);
+router.get('/:userId/favourites', feedController.getFavouritesByUserId);
+router.post('/:userId/updateFavourites', feedController.deleteFavourites);
+
 
 module.exports = router;

@@ -5,6 +5,8 @@ const dotenv = require('dotenv');
 dotenv.config();
 const Pusher = require('pusher');
 const cloudinary = require('cloudinary').v2;
+const UserModel = require('../models/user-model');
+const Favourites = require('../models/favourites');
 
 let pusher = new Pusher({
   appId: process.env.PUSHER_APP_ID,
@@ -43,7 +45,11 @@ uploadNewFeed = async (req, res) => {
       await newPost
         .save()
         .then((result) => {
-          updateFeedToPusher('Feeds-development' , 'Feeds' , result)
+          updateFeedToPusher(
+            'Feeds-development',
+            'Feeds',
+            result
+          );
           res.status(200).json({
             message: 'Post created successfully',
             data: result,
@@ -144,7 +150,6 @@ getAllFeeds = async (req, res) => {
 };
 
 getAllFeedsByUserId = async (req, res) => {
-  console.log('hiii');
   try {
     const posts = await Post.find({
       userId: req.params.userId,
@@ -161,6 +166,48 @@ getAllFeedsByUserId = async (req, res) => {
   }
 };
 
+addFavourites = async (req, res) => {
+  try {
+    const favData = new Favourites({
+      postId: req.body.postId,
+      userId: req.body.userId,
+      actionDate: Date.now,
+    });
+    const updatedUserFav = await favData.save();
+    res.status(200).json({
+      message: 'Favourites added successfully'
+    });
+  } catch (e) {
+    res.status(400).json({ message: e.message });
+  }
+};
+
+getFavouritesByUserId = async (req, res) => {
+  try {
+    const userFavourites = await Favourites.find({
+      userId: req.params.userId,
+    }).exec();
+    res.status(200).json({
+      data: userFavourites ? userFavourites : [],
+    });
+  } catch (e) {
+    res.status(400).json({ message: e.message });
+  }
+};
+
+deleteFavourites = async (req, res) => {
+  try {
+    const userFavourites = await Favourites.findOneAndDelete({
+      postId: req.body.postId,
+    }).exec();
+    res.status(200).json({
+      message: 'Favourites removed successfully'
+    });
+  } catch (e) {
+    res.status(400).json({ message: e.message });
+  }
+};
+
 module.exports = {
   uploadNewFeed,
   likeAFeed,
@@ -168,4 +215,7 @@ module.exports = {
   addAComment,
   getAllFeeds,
   getAllFeedsByUserId,
+  addFavourites,
+  getFavouritesByUserId,
+  deleteFavourites,
 };

@@ -243,7 +243,6 @@ module.exports.login = async (req, res) => {
 };
 
 module.exports.userInfo = async (req, res) => {
-  console.log(req.params.userId);
   const userId = req.params.userId;
   const user = await UserModel.findById(userId);
   // synchronously compare user entered password with hashed password
@@ -268,7 +267,6 @@ module.exports.usersList = async (req, res) => {
       });
     }
   } catch (error) {
-    console.log()
     res.status(500).json({
       message: 'Something went wrong , please again later',
     });
