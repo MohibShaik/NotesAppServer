@@ -9,9 +9,10 @@ const cloudinaryInit = require('../config/cloudinary.config');
 
 const clodStorage =
   cloudinaryInit.initializeCloudinary('Feeds');
-const parser = multer({ storage: clodStorage });
+// const parser = multer({ storage: clodStorage });
+var upload = multer({ storage: clodStorage, limits: {fieldSize: 25 * 1024 * 1024} });
 
-router.post('/upload', parser.any(), feedController.uploadNewFeed);
+router.post('/upload', upload.any(), feedController.uploadNewFeed);
 router.post('/:id/like', jwt.authenticateToken, feedController.likeAFeed);
 router.post('/:id/unlike', jwt.authenticateToken, feedController.unLikeAFeed);
 router.post('/:id/comment', jwt.authenticateToken, feedController.addAComment);

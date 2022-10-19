@@ -15,6 +15,8 @@ const categoryRoutes = require('./routes/categories');
 const labelRoutes = require('./routes/labels');
 const expensesRoutes = require('./routes/expenses');
 const postsRoutes = require('./routes/posts');
+const notificationRoutes = require('./routes/notification');
+
 
 dotenv.config();
 
@@ -35,6 +37,8 @@ app.use('/categories', categoryRoutes);
 app.use('/labels', labelRoutes);
 app.use('/expenses', expensesRoutes);
 app.use('/posts', postsRoutes);
+app.use('/admin', notificationRoutes);
+
 
 // simple route
 app.get('/', (req, res) => {

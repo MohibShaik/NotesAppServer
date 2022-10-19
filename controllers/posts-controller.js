@@ -175,7 +175,7 @@ addFavourites = async (req, res) => {
     });
     const updatedUserFav = await favData.save();
     res.status(200).json({
-      message: 'Favourites added successfully'
+      message: 'Favourites added successfully',
     });
   } catch (e) {
     res.status(400).json({ message: e.message });
@@ -186,7 +186,11 @@ getFavouritesByUserId = async (req, res) => {
   try {
     const userFavourites = await Favourites.find({
       userId: req.params.userId,
-    }).exec();
+    })
+      .populate('userId')
+      .populate('postId');
+
+    console.log(userFavourites);
     res.status(200).json({
       data: userFavourites ? userFavourites : [],
     });
@@ -197,11 +201,12 @@ getFavouritesByUserId = async (req, res) => {
 
 deleteFavourites = async (req, res) => {
   try {
-    const userFavourites = await Favourites.findOneAndDelete({
-      postId: req.body.postId,
-    }).exec();
+    const userFavourites =
+      await Favourites.findOneAndDelete({
+        postId: req.body.postId,
+      }).exec();
     res.status(200).json({
-      message: 'Favourites removed successfully'
+      message: 'Favourites removed successfully',
     });
   } catch (e) {
     res.status(400).json({ message: e.message });
