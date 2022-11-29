@@ -16,10 +16,13 @@ exports.send = async (title, body) => {
         },
       }
     );
-    console.log(response);
-    return response;
+    return {
+      status: response?.status,
+      statusText: response?.statusText,
+      messageId: response?.data?.message_id,
+    };
   } catch (error) {
     console.log(error);
-    return error;
+    return error
   }
 };

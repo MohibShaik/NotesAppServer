@@ -18,7 +18,6 @@ const appNotification = require('../utilities/notifications/app-notification');
 
 exports.send = async (data) => {
   const { title, body } = data;
-
   await new Notification({ title, body }).save();
   return await appNotification.send(title, body);
 };

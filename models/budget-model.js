@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const categorySchema = new mongoose.Schema({
+const budgetSchema = new mongoose.Schema({
   creator: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Users',
@@ -13,9 +13,9 @@ const categorySchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  tab: {
-    type: String,
-    required: true,
+  isActive: {
+    type: Boolean,
+    default: false,
   },
   createdDate: {
     type: Date,
@@ -24,7 +24,7 @@ const categorySchema = new mongoose.Schema({
   },
 });
 
-categorySchema.set('toJSON', {
+budgetSchema.set('toJSON', {
   transform: (document, returnedObject) => {
     returnedObject.id = returnedObject._id.toString();
     delete returnedObject._id;
@@ -32,4 +32,4 @@ categorySchema.set('toJSON', {
   },
 });
 
-module.exports = mongoose.model('Categories', categorySchema);
+module.exports = mongoose.model('budget', budgetSchema);

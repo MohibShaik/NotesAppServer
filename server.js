@@ -16,6 +16,7 @@ const labelRoutes = require('./routes/labels');
 const expensesRoutes = require('./routes/expenses');
 const postsRoutes = require('./routes/posts');
 const notificationRoutes = require('./routes/notification');
+const budgetRoutes = require('./routes/budget');
 
 
 dotenv.config();
@@ -39,6 +40,9 @@ app.use('/expenses', expensesRoutes);
 app.use('/posts', postsRoutes);
 app.use('/admin', notificationRoutes);
 
+app.use('/budget', budgetRoutes);
+
+
 
 // simple route
 app.get('/', (req, res) => {
@@ -52,23 +56,6 @@ const notification_options = {
   timeToLive: 60 * 60 * 24,
 };
 
-app.post('/notification', (req, res) => {
-  const registrationToken = req.body.registrationToken;
-  const message = req.body.message;
-  const options = notification_options;
-
-  admin
-    .messaging()
-    .sendToDevice(registrationToken, message, options)
-    .then((response) => {
-      res
-        .status(200)
-        .send('Notification sent successfully');
-    })
-    .catch((error) => {
-      console.log(error);
-    });
-});
 
 // set port, listen for requests
 const PORT = process.env.PORT || 8082;

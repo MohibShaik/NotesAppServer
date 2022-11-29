@@ -1,24 +1,8 @@
 const express = require('express');
 const { default: mongoose } = require('mongoose');
 const router = express.Router();
-const categoryModel = require('../models/category-model');
+const budgetModel = require('../models/budget-model');
 const jwt = require('../helpers/jwt');
-
-// get all categories by tab name
-router.get(
-  '/:tab',
-  jwt.authenticateToken,
-  async (req, res) => {
-    try {
-      const categories = await categoryModel.find({
-        tab: req.params.tab,
-      });
-      res.status(200).json(categories);
-    } catch (err) {
-      res.status(500).json({ message: err.message });
-    }
-  }
-);
 
 router.get('/', jwt.authenticateToken, async (req, res) => {
   try {
@@ -31,20 +15,18 @@ router.get('/', jwt.authenticateToken, async (req, res) => {
 
 // create a new category
 router.post('/', async (req, res) => {
-  const category = new categoryModel({
+  const budget = new budgetModel({
     creator: req.body.userId,
     name: req.body.name,
-    tab: req.body.tab,
+    isActive: req.body.isActive,
     description: req.body.description,
   });
   try {
-    const newCategory = await category.save();
-    res
-      .status(201)
-      .json({
-        data: newCategory,
-        message: 'New Category created successfully',
-      });
+    const newBudget = await budget.save();
+    res.status(201).json({
+      data: newBudget,
+      message: 'New Budget created successfully',
+    });
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
@@ -103,12 +85,9 @@ async function getCategories(req, res, next) {
       req.params.id
     );
     if (categories == null) {
-      return res
-        .status(404)
-        .json({
-          message:
-            'cannot find categories with provided id',
-        });
+      return res.status(404).json({
+        message: 'cannot find categories with provided id',
+      });
     }
   } catch (err) {
     return res.status(500).json({ message: err.message });
