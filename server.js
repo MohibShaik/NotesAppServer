@@ -8,14 +8,14 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 // routes
-const notesRoutes = require('../routes/notes');
-const authRoutes = require('../routes/auth');
-const categoryRoutes = require('../routes/categories');
-const labelRoutes = require('../routes/labels');
-const expensesRoutes = require('../routes/expenses');
-const postsRoutes = require('../routes/posts');
-const notificationRoutes = require('../routes/notification');
-const budgetRoutes = require('../routes/budget');
+const notesRoutes = require('./routes/notes');
+const authRoutes = require('./routes/auth');
+const categoryRoutes = require('./routes/categories');
+const labelRoutes = require('./routes/labels');
+const expensesRoutes = require('./routes/expenses');
+const postsRoutes = require('./routes/posts');
+const notificationRoutes = require('./routes/notification');
+const budgetRoutes = require('./routes/budget');
 
 
 dotenv.config();
