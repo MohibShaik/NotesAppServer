@@ -45,8 +45,7 @@ const UserSchema = new Schema({
   },
   imagePath: {
     type: String,
-  },
-
+  }
 });
 
 UserSchema.set('toJSON', {
