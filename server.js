@@ -4,7 +4,6 @@ var cors = require('cors');
 var bodyParser = require('body-parser');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
-const admin = require('../config/firebase.config');
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
