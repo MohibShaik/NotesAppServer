@@ -14,7 +14,7 @@ const NOTIFICATION = (title, body) =>
     "body": "${body}",
     "title": "${title}",
     "priority": "high",
-    "screen": "/Sample",
+    "screen": "/dahboard/feeds",
     "img": "",
     "sound": "default"
   }
