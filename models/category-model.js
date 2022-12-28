@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const categorySchema = new mongoose.Schema({
   creator: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Users',
+    ref: 'user',
   },
   name: {
     type: String,
@@ -13,15 +13,15 @@ const categorySchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  tab: {
-    type: String,
-    required: true,
-  },
   createdDate: {
     type: Date,
     required: false,
     default: Date.now,
   },
+  isActive: {
+    type: Boolean,
+    default: true,
+  }
 });
 
 categorySchema.set('toJSON', {
@@ -32,4 +32,7 @@ categorySchema.set('toJSON', {
   },
 });
 
-module.exports = mongoose.model('Categories', categorySchema);
+module.exports = mongoose.model(
+  'Categories',
+  categorySchema
+);

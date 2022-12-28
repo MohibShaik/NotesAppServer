@@ -6,6 +6,7 @@ const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+dotenv.config();
 
 // routes
 const notesRoutes = require('./routes/notes');
@@ -16,17 +17,7 @@ const expensesRoutes = require('./routes/expenses');
 const postsRoutes = require('./routes/posts');
 const notificationRoutes = require('./routes/notification');
 const budgetRoutes = require('./routes/budget');
-
-
-dotenv.config();
-
-// DB config
-mongoose.connect(process.env.DATABASE_URL);
-const db = mongoose.connection;
-db.on('error', (error) => console.log(error));
-db.once('open', () =>
-  console.log('connected to db server')
-);
+const transactionRoutes = require('./routes/transactions');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -35,13 +26,18 @@ app.use('/notes', notesRoutes);
 app.use('/users', authRoutes);
 app.use('/categories', categoryRoutes);
 app.use('/labels', labelRoutes);
-app.use('/expenses', expensesRoutes);
 app.use('/posts', postsRoutes);
 app.use('/admin', notificationRoutes);
-
 app.use('/budget', budgetRoutes);
+app.use('/transactions', transactionRoutes);
 
-
+// DB config
+mongoose.connect(process.env.DATABASE_URL);
+const db = mongoose.connection;
+db.on('error', (error) => console.log(error));
+db.once('open', () =>
+  console.log('connected to db server')
+);
 
 // simple route
 app.get('/', (req, res) => {
@@ -54,7 +50,6 @@ const notification_options = {
   priority: 'high',
   timeToLive: 60 * 60 * 24,
 };
-
 
 // set port, listen for requests
 const PORT = process.env.PORT || 8082;
