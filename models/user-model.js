@@ -13,6 +13,10 @@ const UserSchema = new Schema({
     unique: true,
     required: true,
   },
+  mobileNumber: {
+    type: String,
+    required: true,
+  },
   password: {
     type: String,
     required: true,
@@ -45,7 +49,8 @@ const UserSchema = new Schema({
   },
   imagePath: {
     type: String,
-  }
+  },
+  friends: [String],
 });
 
 UserSchema.set('toJSON', {

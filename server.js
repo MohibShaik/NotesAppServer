@@ -18,6 +18,7 @@ const postsRoutes = require('./routes/posts');
 const notificationRoutes = require('./routes/notification');
 const budgetRoutes = require('./routes/budget');
 const transactionRoutes = require('./routes/transactions');
+const authMiddleware = require("./middleware/auth-middleware");
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -30,6 +31,7 @@ app.use('/posts', postsRoutes);
 app.use('/admin', notificationRoutes);
 app.use('/budget', budgetRoutes);
 app.use('/transactions', transactionRoutes);
+app.use("/", authMiddleware);
 
 // DB config
 mongoose.connect(process.env.DATABASE_URL);

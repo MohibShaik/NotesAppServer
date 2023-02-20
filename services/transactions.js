@@ -1,4 +1,5 @@
 const TransactionModel = require('../models/transactions.model');
+const utils = require('../utilities/utils');
 
 async function createNewTransaction(req, res) {
   const Transaction = new TransactionModel({
@@ -11,24 +12,31 @@ async function createNewTransaction(req, res) {
   });
   try {
     const newTransaction = await Transaction.save();
-    return res.status(201).json(newTransaction);
+
+    const successResponse = utils.successResposeBuilder(
+      req,
+      newTransaction,
+      201,
+      'New Transaction created successfully'
+    );
+
+    return successResponse;
   } catch (err) {
-    return res.status(400).json({ message: err.message });
+    throw err;
   }
 }
 
 async function getUserTransactions(req, res) {
   const userId = req.params.userId;
+  console.log(userId);
   try {
     const result = await TransactionModel.find({
       user: userId,
-    })
-      .populate('user')
-      .populate('category');
+    });
 
-    res.status(200).json(result);
+    return { result };
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    return err.message;
   }
 }
 
@@ -38,33 +46,32 @@ async function getAllTransactions(req, res) {
       .populate('user')
       .populate('category');
 
-    res.status(200).json(result);
+    return { result };
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    return err.message;
   }
 }
 
 async function updateTransDetails(req, res) {
   try {
-    await TransactionModel
-      .findOneAndUpdate(
-        {
-          _id: req.params.transId,
+    await TransactionModel.findOneAndUpdate(
+      {
+        _id: req.params.transId,
+      },
+      {
+        $set: {
+          amount: req.body.amount,
+          category: req.body.category,
+          note: req.body.note,
+          createdDate: req.body.createdDate,
+          transactionType: req.body.transactionType,
         },
-        {
-          $set: {
-            amount: req.body.amount,
-            category: req.body.category,
-            note: req.body.note,
-            createdDate: req.body.createdDate,
-            transactionType: req.body.transactionType,
-          },
-        },
-        { upsert: true, new: true }
-      )
+      },
+      { upsert: true, new: true }
+    )
       .then((result) => {
         if (result) {
-          return res.status(200).json({message:"Project details updated successfully" , data:result});
+          return result;
         }
       })
       .catch((err) => {
